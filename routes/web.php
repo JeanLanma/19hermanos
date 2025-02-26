@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Accounts\AccountStatementsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,4 +22,6 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
+
+    Route::get('/accounts/statements', [AccountStatementsController::class, 'index'])->name('accounts.statements');
 });
