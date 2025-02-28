@@ -19,9 +19,7 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard',  [AccountStatementsController::class, 'index'])->name('dashboard');
 
     Route::get('/accounts/statements', [AccountStatementsController::class, 'index'])->name('accounts.statements');
 });
