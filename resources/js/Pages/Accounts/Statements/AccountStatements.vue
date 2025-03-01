@@ -26,7 +26,6 @@ const CurrentExcelFile = ref({
         }
     },
 });
-/* the component state is an array of objects */
 const props = defineProps({
     products: Object,
     params: Object | Array
@@ -115,14 +114,18 @@ const GetExcelResumeFromJson = (sheet) => {
     return Resume;
 }
 const ResumeChartData = ref({
-  labels: ['Abonos', 'Cargos', 'Saldo'],
-  datasets: [
-    {
-      backgroundColor: ['#22c55e', '#ea580c', '#00D8FF'],
-      data: [0, 0, 100]
-    }
-  ]
-})
+        labels: ['Abonos', 'Cargos', 'Saldo'],
+        datasets: [
+                    {
+                    backgroundColor: ['#22c55e', '#ea580c', '#00D8FF'],
+                    data: [
+                        0,
+                        0,
+                        100
+                    ]
+                    }
+                ]
+        });
 // ================
 /**
  * Handle Excel file change
@@ -150,11 +153,19 @@ const handleExcelFileChange = (event) => {
         };
 
         // Updating Chart Data
-        ResumeChartData.value.datasets[0].data = [
-            CurrentExcelFile.value.activeSheet.data.resume.AbonoTotal,
-            CurrentExcelFile.value.activeSheet.data.resume.CargoTotal,
-            CurrentExcelFile.value.activeSheet.data.resume.SaldoTotal
-        ];
+        ResumeChartData.value = {
+        labels: ['Abonos', 'Cargos', 'Saldo'],
+        datasets: [
+                    {
+                    backgroundColor: ['#22c55e', '#ea580c', '#00D8FF'],
+                    data: [
+                        CurrentExcelFile.value.activeSheet.data.resume.AbonoTotal,
+                        CurrentExcelFile.value.activeSheet.data.resume.CargoTotal,
+                        CurrentExcelFile.value.activeSheet.data.resume.SaldoTotal
+                    ]
+                    }
+                ]
+        };
 
         console.log(CurrentExcelFile.value.activeSheet.data);
         
@@ -162,16 +173,7 @@ const handleExcelFileChange = (event) => {
 
     reader.readAsArrayBuffer(file);
 }
-onMounted( () => {
-
-    
-    setInterval(() => {
-        ResumeChartData.value.datasets[0].data = [
-            Math.random() * 100,
-            Math.random() * 100,
-            Math.random() * 100
-        ];
-    }, 5000);
+onMounted( () => {    
 
     const saveChanges = () => {
         let table = document.getElementById('excelTable');
@@ -247,18 +249,84 @@ const excelData = ref(null);
                     </div>
                 </div>
 
-                <!-- ChartJS -->
-                <div class="bg-white md:w-1/2 overflow-hidden shadow-xl sm:rounded-lg px-4 py-8">
-                    <div class="flex justify-center">
-                        <div>
-                            <Doughnut :data="ResumeChartData" :options="options" />
+                <section class="flex space-x-4 mt-4">
+                    <!-- ChartJS -->
+                    <div class="bg-white md:w-1/2 overflow-hidden shadow-xl sm:rounded-lg px-4 py-8">
+                        <div class="flex justify-center">
+                            <div>
+                                <Doughnut :data="ResumeChartData" :options="options" />
+                            </div>
+                            <!-- <NavigationButton @click="exportFile" class="hidden ml-24 max-w-20 w-14 flex justify-centner border-[#45B058]">
+                                <svg width="32px" height="32px" viewBox="-4 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.112.006c-2.802 0-5.073 2.273-5.073 5.074v53.841c0 2.803 2.271 5.074 5.073 5.074h45.774c2.801 0 5.074-2.271 5.074-5.074v-38.605l-18.902-20.31h-31.946z" fill-rule="evenodd" clip-rule="evenodd" fill="#45B058"></path><path d="M19.429 53.938c-.216 0-.415-.09-.54-.27l-3.728-4.97-3.745 4.97c-.126.18-.324.27-.54.27-.396 0-.72-.306-.72-.72 0-.144.035-.306.144-.432l3.89-5.131-3.619-4.826c-.09-.126-.145-.27-.145-.414 0-.342.288-.72.721-.72.216 0 .432.108.576.288l3.438 4.628 3.438-4.646c.127-.18.324-.27.541-.27.378 0 .738.306.738.72 0 .144-.036.288-.127.414l-3.619 4.808 3.891 5.149c.09.126.125.27.125.414 0 .396-.324.738-.719.738zm9.989-.126h-5.455c-.595 0-1.081-.486-1.081-1.08v-10.317c0-.396.324-.72.774-.72.396 0 .721.324.721.72v10.065h5.041c.359 0 .648.288.648.648 0 .396-.289.684-.648.684zm6.982.216c-1.782 0-3.188-.594-4.213-1.495-.162-.144-.234-.342-.234-.54 0-.36.27-.756.702-.756.144 0 .306.036.433.144.828.738 1.98 1.314 3.367 1.314 2.143 0 2.826-1.152 2.826-2.071 0-3.097-7.111-1.386-7.111-5.672 0-1.98 1.764-3.331 4.123-3.331 1.548 0 2.881.468 3.853 1.278.162.144.253.342.253.54 0 .36-.307.72-.703.72-.145 0-.307-.054-.432-.162-.883-.72-1.98-1.044-3.079-1.044-1.44 0-2.467.774-2.467 1.909 0 2.701 7.112 1.152 7.112 5.636 0 1.748-1.188 3.53-4.43 3.53z" fill="#ffffff"></path><path d="M55.953 20.352v1h-12.801s-6.312-1.26-6.127-6.707c0 0 .207 5.707 6.002 5.707h12.926z" fill-rule="evenodd" clip-rule="evenodd" fill="#349C42"></path><path d="M37.049 0v14.561c0 1.656 1.104 5.791 6.104 5.791h12.801l-18.905-20.352z" opacity=".5" fill-rule="evenodd" clip-rule="evenodd" fill="#ffffff"></path></g></svg>
+                            </NavigationButton> -->
                         </div>
-                        <!-- <NavigationButton @click="exportFile" class="hidden ml-24 max-w-20 w-14 flex justify-centner border-[#45B058]">
-                            <svg width="32px" height="32px" viewBox="-4 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.112.006c-2.802 0-5.073 2.273-5.073 5.074v53.841c0 2.803 2.271 5.074 5.073 5.074h45.774c2.801 0 5.074-2.271 5.074-5.074v-38.605l-18.902-20.31h-31.946z" fill-rule="evenodd" clip-rule="evenodd" fill="#45B058"></path><path d="M19.429 53.938c-.216 0-.415-.09-.54-.27l-3.728-4.97-3.745 4.97c-.126.18-.324.27-.54.27-.396 0-.72-.306-.72-.72 0-.144.035-.306.144-.432l3.89-5.131-3.619-4.826c-.09-.126-.145-.27-.145-.414 0-.342.288-.72.721-.72.216 0 .432.108.576.288l3.438 4.628 3.438-4.646c.127-.18.324-.27.541-.27.378 0 .738.306.738.72 0 .144-.036.288-.127.414l-3.619 4.808 3.891 5.149c.09.126.125.27.125.414 0 .396-.324.738-.719.738zm9.989-.126h-5.455c-.595 0-1.081-.486-1.081-1.08v-10.317c0-.396.324-.72.774-.72.396 0 .721.324.721.72v10.065h5.041c.359 0 .648.288.648.648 0 .396-.289.684-.648.684zm6.982.216c-1.782 0-3.188-.594-4.213-1.495-.162-.144-.234-.342-.234-.54 0-.36.27-.756.702-.756.144 0 .306.036.433.144.828.738 1.98 1.314 3.367 1.314 2.143 0 2.826-1.152 2.826-2.071 0-3.097-7.111-1.386-7.111-5.672 0-1.98 1.764-3.331 4.123-3.331 1.548 0 2.881.468 3.853 1.278.162.144.253.342.253.54 0 .36-.307.72-.703.72-.145 0-.307-.054-.432-.162-.883-.72-1.98-1.044-3.079-1.044-1.44 0-2.467.774-2.467 1.909 0 2.701 7.112 1.152 7.112 5.636 0 1.748-1.188 3.53-4.43 3.53z" fill="#ffffff"></path><path d="M55.953 20.352v1h-12.801s-6.312-1.26-6.127-6.707c0 0 .207 5.707 6.002 5.707h12.926z" fill-rule="evenodd" clip-rule="evenodd" fill="#349C42"></path><path d="M37.049 0v14.561c0 1.656 1.104 5.791 6.104 5.791h12.801l-18.905-20.352z" opacity=".5" fill-rule="evenodd" clip-rule="evenodd" fill="#ffffff"></path></g></svg>
-                        </NavigationButton> -->
+                        <table id="excelTable" border="1"></table>
                     </div>
-                    <table id="excelTable" border="1"></table>
-                </div>
+                    <!-- ChartJS -->
+                    <!-- Movimientos por Concepto -->
+                    <div class="md:w-1/2 max-h-96 overflow-y-auto bg-white border border-gray-100 shadow-md shadow-black/5 p-6 rounded-md">
+                        <div class="flex justify-between mb-0 items-start">
+                            <div class="font-medium">Movimientos</div>
+                            <div class="dropdown">
+                                <button type="button" class="dropdown-toggle text-gray-400 hover:text-gray-600"><i class="ri-more-fill"></i></button>
+                                <ul class="dropdown-menu shadow-md shadow-black/5 z-30 py-1.5 rounded-md bg-white border border-gray-100 w-full max-w-[140px] hidden" data-popper-id="popper-10" style="position: absolute; inset: 0px 0px auto auto; margin: 0px; transform: translate3d(-48.8px, 688.8px, 0px);" data-popper-placement="bottom-end">
+                                    <li>
+                                        <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Profile</a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Settings</a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Logout</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table v-if="CurrentExcelFile.activeSheet.rows.length > 0" class="w-full min-w-[460px]">
+                                <thead>
+                                    <tr>
+                                        <th class="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tl-md rounded-bl-md">Concepto</th>
+                                        <th class="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left">Abono</th>
+                                        <th class="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tr-md rounded-br-md">Cargo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(row, index) in CurrentExcelFile.activeSheet.rows" :key="index">
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <div class="flex items-center">
+                                                <img src="https://placehold.co/32x32" alt="" class="w-8 h-8 rounded object-cover block">
+                                                <a href="#" class="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate">{{ (row[1]) }}</a>
+                                            </div>
+                                        </td>
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <span class="text-[13px] font-medium text-emerald-500">{{ Format.Currency(row[4]) }}</span>
+                                        </td>
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">- {{ Format.Currency(row[5]) }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hidden">
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <div class="flex items-center">
+                                                <img src="https://placehold.co/32x32" alt="" class="w-8 h-8 rounded object-cover block">
+                                                <a href="#" class="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate">Create landing page</a>
+                                            </div>
+                                        </td>
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <span class="text-[13px] font-medium text-rose-500">-$235</span>
+                                        </td>
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">Withdrawn</span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- /Movimientos por Concepto -->
+                </section>
+
             </div>
         </div>
 
