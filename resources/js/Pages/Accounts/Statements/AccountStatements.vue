@@ -4,7 +4,7 @@ import NavigationButton from '@/Shared/NavigationButton.vue';
 import Format from '@/Utils/Format.js';
 // XLSX
 import { read, utils, writeFileXLSX } from 'xlsx';
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted } from "vue";
 // ChartJS
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
@@ -15,6 +15,7 @@ const CurrentExcelFile = ref({
     activeSheet: {
         name: '',
         rows: [],
+        groupedRows: [],
         data: [],
         resume: {
             CargoTotal: 0,
@@ -40,6 +41,8 @@ const AccountStatements = ref({
         },
     }
 });
+/* the component state is an array of objects */
+const HasFilter = ref(false);
 
 /* Fetch and update the state once */
 //  onMounted(async() => {
@@ -166,8 +169,6 @@ const handleExcelFileChange = (event) => {
                     }
                 ]
         };
-
-        console.log(CurrentExcelFile.value.activeSheet.data);
         
     };
 
@@ -193,6 +194,26 @@ const options = {
 }
 
 const excelData = ref(null);
+
+const GroupByConcept = () => {
+    const grouped = CurrentExcelFile.value.activeSheet.rows.reduce((acc, row) => {
+        const concept = row[1];
+        if (!acc[concept]) {
+            acc[concept] = {
+                Abono: 0,
+                Cargo: 0,
+                Concepto: concept,
+            };
+        }
+        acc[concept].Abono += row[4] ? parseFloat(row[4]) : 0;
+        acc[concept].Cargo += row[5] ? parseFloat(row[5]) : 0;
+        return acc;
+    }, {});
+    CurrentExcelFile.value.activeSheet.groupedRows = grouped;
+    HasFilter.value = true;
+    console.log(CurrentExcelFile.value.activeSheet.groupedRows);
+    
+}
 </script>
 
 <template>
@@ -267,19 +288,12 @@ const excelData = ref(null);
                     <div class="md:w-1/2 max-h-96 overflow-y-auto bg-white border border-gray-100 shadow-md shadow-black/5 p-6 rounded-md">
                         <div class="flex justify-between mb-0 items-start">
                             <div class="font-medium">Movimientos</div>
-                            <div class="dropdown">
-                                <button type="button" class="dropdown-toggle text-gray-400 hover:text-gray-600"><i class="ri-more-fill"></i></button>
-                                <ul class="dropdown-menu shadow-md shadow-black/5 z-30 py-1.5 rounded-md bg-white border border-gray-100 w-full max-w-[140px] hidden" data-popper-id="popper-10" style="position: absolute; inset: 0px 0px auto auto; margin: 0px; transform: translate3d(-48.8px, 688.8px, 0px);" data-popper-placement="bottom-end">
-                                    <li>
-                                        <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Profile</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Settings</a>
-                                    </li>
-                                    <li>
-                                        <a href="#" class="flex items-center text-[13px] py-1.5 px-4 text-gray-600 hover:text-blue-500 hover:bg-gray-50">Logout</a>
-                                    </li>
-                                </ul>
+                            <div>
+                            <NavigationButton @click.native="GroupByConcept" class="ml-24 max-w-20 w-14 flex justify-center">
+                                <p class="font-medium text-sky-500">
+                                    Agrupar
+                                </p>
+                            </NavigationButton>
                             </div>
                         </div>
                         <div class="overflow-x-auto">
@@ -292,7 +306,20 @@ const excelData = ref(null);
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(row, index) in CurrentExcelFile.activeSheet.rows" :key="index">
+                                    <tr v-if="HasFilter" v-for="(row, idx) in CurrentExcelFile.activeSheet.groupedRows" :key="idx">
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <div class="flex items-center">
+                                                <a href="#" class="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate">{{ (row.Concepto) }}</a>
+                                            </div>
+                                        </td>
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <span class="text-[13px] font-medium text-emerald-500">{{ Format.Currency(row.Abono) }}</span>
+                                        </td>
+                                        <td class="py-2 px-4 border-b border-b-gray-50">
+                                            <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">- {{ Format.Currency(row.Cargo) }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr v-else v-for="(row, index) in CurrentExcelFile.activeSheet.rows" :key="index">
                                         <td class="py-2 px-4 border-b border-b-gray-50">
                                             <div class="flex items-center">
                                                 <img src="https://placehold.co/32x32" alt="" class="w-8 h-8 rounded object-cover block">
@@ -309,7 +336,6 @@ const excelData = ref(null);
                                     <tr class="hidden">
                                         <td class="py-2 px-4 border-b border-b-gray-50">
                                             <div class="flex items-center">
-                                                <img src="https://placehold.co/32x32" alt="" class="w-8 h-8 rounded object-cover block">
                                                 <a href="#" class="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate">Create landing page</a>
                                             </div>
                                         </td>
