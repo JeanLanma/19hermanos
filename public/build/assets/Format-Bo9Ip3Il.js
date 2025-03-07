@@ -1,1 +1,0 @@
-const i=n=>new Date(n).toISOString().split("T")[0].split("-").join("/"),e=n=>n==null?"":"$"+n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,","),r=(n,t=12)=>n==null?"":n.length<=t?n:n.substring(0,t)+"...",u={TimestampToDate:i,FormatPrice:e,Currency:e,TruncateString:r,TruncateText:r};export{u as F};
