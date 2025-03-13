@@ -2,6 +2,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import NavigationButton from '@/Shared/NavigationButton.vue';
 import Format from '@/Utils/Format.js';
+import BBVA from '@/Accounts/BBVA.js';
 // XLSX
 import { read, utils, writeFileXLSX } from 'xlsx';
 import { ref, onMounted } from "vue";
@@ -9,7 +10,15 @@ import { ref, onMounted } from "vue";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
 ChartJS.register(ArcElement, Tooltip, Legend)
-
+// Props
+const props = defineProps({
+    products: Object,
+    params: Object | Array
+});
+const Workbook = ref({
+    SheetNames: [],
+    Sheets: {},
+});
 const CurrentExcelFile = ref({
     name: '',
     activeSheet: {
@@ -27,36 +36,8 @@ const CurrentExcelFile = ref({
         }
     },
 });
-const props = defineProps({
-    products: Object,
-    params: Object | Array
-});
-
-/* the component state is an array of objects */
-const AccountStatements = ref({
-    XLS: {
-        BBVA: {
-            headers: ["Fecha Operación", "Concepto", "Referencia", "Referencia Ampliada", "Cargo", "Abono", "Saldo"],
-            rows: []
-        },
-    }
-});
 /* the component state is an array of objects */
 const HasFilter = ref(false);
-
-/* Fetch and update the state once */
-//  onMounted(async() => {
-//    const f = await fetch("https://docs.sheetjs.com/pres.numbers");
-//    const ab = await f.arrayBuffer();
-//    /* parse */
-//    const wb = read(ab);
-//    /* generate array of objects from first worksheet */
-//    const ws = wb.Sheets[wb.SheetNames[0]]; // get the first worksheet
-//    const data = utils.sheet_to_json(ws); // generate objects
-//    /* update state */
-//     rows.value = data;
-//     console.log(rows.value);
-//  });
 /* get state data and export to XLSX */
 function exportFile() {
     let table = document.getElementById("excelTable");
@@ -80,42 +61,6 @@ function exportFile() {
     writeFileXLSX(workbook, "archivo_modificado.xlsx");
 }
 // ================
-const GetExcelResumeFromJson = (sheet) => {
-    const Resume = {
-        CargoTotal: 0,
-        AbonoTotal: 0,
-        SaldoTotal: 0,
-        SaldoTotalString: '',
-        AbonoTotalString: '',
-        CargoTotalString: ''
-    };
-    // Remover la primera fila (encabezados)
-    sheet.shift();
-    sheet.shift();
-    // Preparar el aoa para calcular los totales
-    const _sheet = sheet.map(row => {
-        return row.map(cell => {
-            return cell ? cell.toString().replace(/,/g, '') : cell;
-        });
-    });
-    _sheet.forEach((row, index) => {
-        if (index > 0) {
-            Resume.CargoTotal += row[4] ? parseFloat(row[4]) : 0;
-            Resume.AbonoTotal += row[5] ? parseFloat(row[5]) : 0;
-            Resume.SaldoTotal = row[6] ? parseFloat(row[6]) : 0;
-        }
-    });
-    
-    // Redondear a dos decimales
-    Resume.CargoTotal = Resume.CargoTotal.toFixed(2);
-    Resume.AbonoTotal = Resume.AbonoTotal.toFixed(2);
-    Resume.SaldoTotal = Resume.SaldoTotal.toFixed(2);
-    // Formatear a moneda
-    Resume.CargoTotalString = Format.Currency(Resume.CargoTotal);
-    Resume.AbonoTotalString = Format.Currency(Resume.AbonoTotal);
-    Resume.SaldoTotalString = Format.Currency(Resume.SaldoTotal);
-    return Resume;
-}
 const ResumeChartData = ref({
         labels: ['Abonos', 'Cargos', 'Saldo'],
         datasets: [
@@ -148,13 +93,16 @@ const handleExcelFileChange = (event) => {
         CurrentExcelFile.value.activeSheet.name = sheetName;
         CurrentExcelFile.value.activeSheet.rows = sheetData;
 
-        const resume = GetExcelResumeFromJson(sheetData);
+        const resume = BBVA.HandleExcelSheet(sheetData);
         
         CurrentExcelFile.value.activeSheet.data = {
             rows: sheetData,
             resume: resume,
         };
 
+        Workbook.value.SheetNames.push(sheetName);
+        Workbook.value.Sheets[sheetName] = sheet;
+        console.log(Workbook.value);
         // Updating Chart Data
         ResumeChartData.value = {
         labels: ['Abonos', 'Cargos', 'Saldo'],
@@ -239,6 +187,24 @@ const GroupByConcept = () => {
                             </button>
                             <div>
                                 <p>{{ CurrentExcelFile.name != '' ? Format.TruncateText(CurrentExcelFile.name, 18) : 'Cargar archivo' }}</p>
+                                <div class="flex">
+                                    <li class="flex cursor-pointer items-center font-sans text-sm font-normal leading-normal text-blue-gray-900 antialiased transition-colors duration-300 hover:text-pink-500">
+                                        <a class="opacity-60" href="#">
+                                        <span>Archivo 1</span>
+                                        </a>
+                                        <span class="pointer-events-none mx-2 select-none font-sans text-sm font-normal leading-normal text-blue-gray-500 antialiased">
+                                        -
+                                        </span>
+                                    </li>
+                                    <li class="flex cursor-pointer items-center font-sans text-sm font-normal leading-normal text-blue-gray-900 antialiased transition-colors duration-300 hover:text-pink-500">
+                                        <a class="opacity-60" href="#">
+                                        <span>Archivo 2</span>
+                                        </a>
+                                        <span class="pointer-events-none mx-2 select-none font-sans text-sm font-normal leading-normal text-blue-gray-500 antialiased">
+                                        -
+                                        </span>
+                                    </li>
+                                </div>
                                 <h2 class="hidden text-4xl font-bold text-gray-600">50.365</h2>
                                 <p :title="CurrentExcelFile.name">{{ Format.TruncateText(CurrentExcelFile.activeSheet.name, 18) }}</p>
                             </div>
