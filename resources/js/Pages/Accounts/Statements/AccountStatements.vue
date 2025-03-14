@@ -73,13 +73,24 @@ const ResumeChartData = ref({
                     ]
                     }
                 ]
-        });
+    });
 // ================
 /**
  * Handle Excel file change
  */
 const handleExcelFileChange = (event) => {
     const file = event.target.files[0];
+    if (!file) return;
+    // verificar que el archivo sea un archivo de Excel
+    if (!file.name.endsWith('.xls') && !file.name.endsWith('.xlsx')) {
+        alert('El archivo seleccionado no es un archivo de Excel');
+        return;
+    }
+    // Verificar si existe el archivo en el Workbook
+    if(Workbook.value.SheetNames.some(sheet => sheet.FileName === file.name)) {
+        alert('El archivo ya ha sido cargado');
+        return;
+    }
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -94,15 +105,46 @@ const handleExcelFileChange = (event) => {
         CurrentExcelFile.value.activeSheet.rows = sheetData;
 
         const resume = BBVA.HandleExcelSheet(sheetData);
-        
-        CurrentExcelFile.value.activeSheet.data = {
-            rows: sheetData,
-            resume: resume,
-        };
+        // Merge data to Workbook
+        Workbook.value.SheetNames.push({
+            FileName: file.name,
+            Spreadsheets: resume,
+        });
+        // Sumar Totales en caso de que existan
+        console.log(Workbook.value.SheetNames);    
+        if(Workbook.value.SheetNames.length > 1) {
 
-        Workbook.value.SheetNames.push(sheetName);
-        Workbook.value.Sheets[sheetName] = sheet;
-        console.log(Workbook.value);
+            // Recalcular resume sumando los totales de todos los archivos
+            let totalAbono = 0;
+            let totalCargo = 0;
+            let totalSaldo = 0;
+            Workbook.value.SheetNames.forEach(sheet => {
+                totalAbono += parseFloat(sheet.Spreadsheets.AbonoTotal);
+                totalCargo += parseFloat(sheet.Spreadsheets.CargoTotal);
+                totalSaldo += parseFloat(sheet.Spreadsheets.SaldoTotal);
+            });
+
+            // Merge data to CurrentExcelFile
+            CurrentExcelFile.value.activeSheet.data = {
+                rows: sheetData,
+                resume: {
+                    AbonoTotal: totalAbono.toFixed(2),
+                    CargoTotal: totalCargo.toFixed(2),
+                    SaldoTotal: totalSaldo.toFixed(2),
+                    SaldoTotalString: Format.Currency(totalSaldo),
+                    AbonoTotalString: Format.Currency(totalAbono),
+                    CargoTotalString: Format.Currency(totalCargo)
+                },
+            };
+
+        } else {
+            // Merge data to CurrentExcelFile
+            CurrentExcelFile.value.activeSheet.data = {
+                rows: sheetData,
+                resume: resume,
+            };
+        }
+        console.log(CurrentExcelFile.value.activeSheet);
         // Updating Chart Data
         ResumeChartData.value = {
         labels: ['Abonos', 'Cargos', 'Saldo'],
@@ -187,21 +229,13 @@ const GroupByConcept = () => {
                             </button>
                             <div>
                                 <p>{{ CurrentExcelFile.name != '' ? Format.TruncateText(CurrentExcelFile.name, 18) : 'Cargar archivo' }}</p>
-                                <div class="flex">
-                                    <li class="flex cursor-pointer items-center font-sans text-sm font-normal leading-normal text-blue-gray-900 antialiased transition-colors duration-300 hover:text-pink-500">
+                                <div v-if="Workbook.SheetNames.length > 0" class="flex">
+                                    <li v-for="Spreadsheet in Workbook.SheetNames" class="flex cursor-pointer items-center font-sans text-sm font-normal leading-normal text-blue-gray-900 antialiased transition-colors duration-300 hover:text-pink-500">
                                         <a class="opacity-60" href="#">
-                                        <span>Archivo 1</span>
+                                        <span>{{ Format.TruncateText(Spreadsheet.FileName) }}</span>
                                         </a>
                                         <span class="pointer-events-none mx-2 select-none font-sans text-sm font-normal leading-normal text-blue-gray-500 antialiased">
-                                        -
-                                        </span>
-                                    </li>
-                                    <li class="flex cursor-pointer items-center font-sans text-sm font-normal leading-normal text-blue-gray-900 antialiased transition-colors duration-300 hover:text-pink-500">
-                                        <a class="opacity-60" href="#">
-                                        <span>Archivo 2</span>
-                                        </a>
-                                        <span class="pointer-events-none mx-2 select-none font-sans text-sm font-normal leading-normal text-blue-gray-500 antialiased">
-                                        -
+                                            
                                         </span>
                                     </li>
                                 </div>
