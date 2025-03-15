@@ -128,11 +128,11 @@ const handleExcelFileChange = (event) => {
             CurrentExcelFile.value.activeSheet.data = {
                 rows: sheetData,
                 resume: {
-                    AbonoTotal: totalAbono.toFixed(2),
-                    CargoTotal: totalCargo.toFixed(2),
-                    SaldoTotal: totalSaldo.toFixed(2),
-                    SaldoTotalString: Format.Currency(totalSaldo),
-                    AbonoTotalString: Format.Currency(totalAbono),
+                    AbonoTotal: Format.Round(totalAbono),
+                    CargoTotal: Format.Round(totalCargo),
+                    SaldoTotal: Format.Round(totalSaldo),
+                    SaldoTotalString: Format.Currency((totalSaldo)),
+                    AbonoTotalString: Format.Currency(Format.Round(totalAbono)),
                     CargoTotalString: Format.Currency(totalCargo)
                 },
             };

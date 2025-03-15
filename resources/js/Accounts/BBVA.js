@@ -52,11 +52,11 @@ const HandleExcelSheet = (ExcelSheet) => {
     });
     
     // Redondear a dos decimales
-    Resume.CargoTotal = Resume.CargoTotal.toFixed(2);
-    Resume.AbonoTotal = Resume.AbonoTotal.toFixed(2);
-    Resume.SaldoTotal = Resume.SaldoTotal.toFixed(2);
+    Resume.CargoTotal = Format.Round(Resume.CargoTotal);
+    Resume.AbonoTotal = Format.Round(Resume.AbonoTotal);
+    Resume.SaldoTotal = Format.Round(Resume.SaldoTotal);
     // Calcular el saldo total
-    Resume.SaldoTotal = (Resume.AbonoTotal - Resume.CargoTotal).toFixed(2);
+    Resume.SaldoTotal = Format.Round(Resume.AbonoTotal - Resume.CargoTotal);
     // Formatear a moneda
     Resume.CargoTotalString = Format.Currency(Resume.CargoTotal);
     Resume.AbonoTotalString = Format.Currency(Resume.AbonoTotal);
