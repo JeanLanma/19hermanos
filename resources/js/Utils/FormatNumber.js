@@ -5,8 +5,5 @@ export const FormatPrice = (n) => {
 }
 
 export const Round = (n, d = 2) => {
-    // Human
     return Math.round(n * Math.pow(10, d)) / Math.pow(10, d);
-    // IA
-    // return (Math.round( num * 100 ) / 100).toFixed(2);
 }
