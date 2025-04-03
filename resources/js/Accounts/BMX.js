@@ -32,17 +32,20 @@ const HandleExcelSheet = (ExcelSheet) => {
     };
     // Filas donde esta la informacion
     const Rows = {
-        Cargo: 4,
-        Abono: 5
+        Cargo: 3,
+        Abono: 2
     };
-    // Saltar hasta la fila 15
-    ExcelSheet = ExcelSheet.slice(15);
+    // Saltar hasta la fila 16
+    ExcelSheet = ExcelSheet.slice(16);
     // Preparar el aoa para calcular los totales
     const _sheet = ExcelSheet.map(row => {
         return row.map(cell => {
             return cell ? cell.toString().replace(/,/g, '') : cell;
         });
     });
+    // Remover la primera fila (encabezados)
+    _sheet.shift();
+    // Sumamos los cargos y abonos
     _sheet.forEach((row, index) => {
         if (index > 0) {
             Resume.CargoTotal += row[Rows.Cargo] ? parseFloat(row[Rows.Cargo]) : 0;
