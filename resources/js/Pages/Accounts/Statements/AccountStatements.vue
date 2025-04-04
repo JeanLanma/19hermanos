@@ -366,6 +366,84 @@ const switchBankOrder = (bank) => {
             break;
     }
 }
+
+// Exportar archivo excel de groupByConcept
+const ExportGrupedByFiles = () => {
+    let table = document.getElementById("excelTableBBVA");
+    let sheetData = [];
+
+    // Establecer cabecera de la tabla
+    let headerRow = [];
+    table.querySelectorAll("th").forEach((header) => {
+        headerRow.push(header.textContent.trim()); // Obtener texto de cada celda
+    });
+    // Recorrer filas de la tabla
+    table.querySelectorAll("tr").forEach((row) => {
+        let rowData = [];
+        row.querySelectorAll("td").forEach((cell) => {
+            rowData.push(cell.textContent.trim()); // Obtener texto de cada celda
+        });
+        sheetData.push(rowData);
+    });
+
+    // Agregar la cabecera al inicio de la tabla
+    sheetData.unshift(headerRow);
+
+
+    // Crear un nuevo libro de Excel
+    let workbook = utils.book_new();
+    let worksheet = utils.aoa_to_sheet(sheetData); // Convertir la tabla a formato Excel
+    utils.book_append_sheet(workbook, worksheet, "Concentrado");
+
+    // Fecha de hoy
+    let today = new Date();
+    let day = String(today.getDate()).padStart(2, '0');
+    let month = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
+    let year = today.getFullYear();
+    let formattedDate = `${year}-${month}-${day}`;
+
+    // Guardar archivo Excel
+    writeFileXLSX(workbook, "Concentrado_BBVA_"+ formattedDate +".xlsx");
+}
+
+const ExportGroupedByFilesBanamex = () => {
+    let table = document.getElementById("excelTableBanamex");
+    let sheetData = [];
+
+    // Establecer cabecera de la tabla
+    let headerRow = [];
+    table.querySelectorAll("th").forEach((header) => {
+        headerRow.push(header.textContent.trim()); // Obtener texto de cada celda
+    });
+    // Recorrer filas de la tabla
+    table.querySelectorAll("tr").forEach((row) => {
+        let rowData = [];
+        row.querySelectorAll("td").forEach((cell) => {
+            rowData.push(cell.textContent.trim()); // Obtener texto de cada celda
+        });
+        sheetData.push(rowData);
+    });
+
+    // Agregar la cabecera al inicio de la tabla
+    sheetData.unshift(headerRow);
+
+
+    // Crear un nuevo libro de Excel
+    let workbook = utils.book_new();
+    let worksheet = utils.aoa_to_sheet(sheetData); // Convertir la tabla a formato Excel
+    utils.book_append_sheet(workbook, worksheet, "Concentrado");
+
+    // Fecha de hoy
+    let today = new Date();
+    let day = String(today.getDate()).padStart(2, '0');
+    let month = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
+    let year = today.getFullYear();
+    let formattedDate = `${year}-${month}-${day}`;
+
+    // Guardar archivo Excel
+    writeFileXLSX(workbook, "Concentrado_Banamex_"+ formattedDate +".xlsx");
+}
+
 </script>
 
 <template>
@@ -468,7 +546,12 @@ const switchBankOrder = (bank) => {
                             <div class="md:w-1/2 max-h-96 overflow-y-auto bg-white border border-gray-100 shadow-md shadow-black/5 p-6 rounded-md">
                                 <div class="flex justify-between mb-0 items-start">
                                     <div class="font-medium">Movimientos</div>
-                                    <div>
+                                    <div class="flex items-center space-x-2">
+                                    <NavigationButton v-show="HasFilter" @click.native="ExportGrupedByFiles" class="ml-24 max-w-20 w-14 flex justify-center">
+                                        <p class="font-medium text-sky-500">
+                                            Exportar
+                                        </p>
+                                    </NavigationButton>
                                     <NavigationButton @click.native="GroupByConcept" class="ml-24 max-w-20 w-14 flex justify-center">
                                         <p class="font-medium text-sky-500">
                                             Agrupar
@@ -477,7 +560,7 @@ const switchBankOrder = (bank) => {
                                     </div>
                                 </div>
                                 <div class="overflow-x-auto">
-                                    <table v-if="CurrentExcelFile.activeSheet.rows.length > 0" class="w-full min-w-[460px]">
+                                    <table v-if="CurrentExcelFile.activeSheet.rows.length > 0" class="w-full min-w-[460px]" id="excelTableBBVA">
                                         <thead>
                                             <tr>
                                                 <th class="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tl-md rounded-bl-md">Concepto</th>
@@ -511,19 +594,6 @@ const switchBankOrder = (bank) => {
                                                 </td>
                                                 <td class="py-2 px-4 border-b border-b-gray-50">
                                                     <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">- {{ Format.Currency(row[5]) }}</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="hidden">
-                                                <td class="py-2 px-4 border-b border-b-gray-50">
-                                                    <div class="flex items-center">
-                                                        <a href="#" class="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate">Create landing page</a>
-                                                    </div>
-                                                </td>
-                                                <td class="py-2 px-4 border-b border-b-gray-50">
-                                                    <span class="text-[13px] font-medium text-rose-500">-$235</span>
-                                                </td>
-                                                <td class="py-2 px-4 border-b border-b-gray-50">
-                                                    <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">Withdrawn</span>
                                                 </td>
                                             </tr>
                                             </tbody>
@@ -607,7 +677,12 @@ const switchBankOrder = (bank) => {
                             <div class="md:w-1/2 max-h-96 overflow-y-auto bg-white border border-gray-100 shadow-md shadow-black/5 p-6 rounded-md">
                                 <div class="flex justify-between mb-0 items-start">
                                     <div class="font-medium">Movimientos</div>
-                                    <div>
+                                    <div class="flex items-center space-x-2">
+                                    <NavigationButton v-show="HasFilterB" @click.native="ExportGroupedByFilesBanamex" class="ml-24 max-w-20 w-14 flex justify-center">
+                                        <p class="font-medium text-sky-500">
+                                            Exportar
+                                        </p>
+                                    </NavigationButton>
                                     <NavigationButton @click.native="GroupByConceptBanamex" class="ml-24 max-w-20 w-14 flex justify-center">
                                         <p class="font-medium text-sky-500">
                                             Agrupar
@@ -616,7 +691,7 @@ const switchBankOrder = (bank) => {
                                     </div>
                                 </div>
                                 <div class="overflow-x-auto">
-                                    <table v-if="CurrentExcelFileBanamex.activeSheet.rows.length > 0" class="w-full min-w-[460px]">
+                                    <table v-if="CurrentExcelFileBanamex.activeSheet.rows.length > 0" class="w-full min-w-[460px]" id="excelTableBanamex">
                                         <thead>
                                             <tr>
                                                 <th class="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tl-md rounded-bl-md">Concepto</th>
@@ -650,19 +725,6 @@ const switchBankOrder = (bank) => {
                                                 </td>
                                                 <td class="py-2 px-4 border-b border-b-gray-50">
                                                     <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">- {{ Format.Currency(row[5]) }}</span>
-                                                </td>
-                                            </tr>
-                                            <tr class="hidden">
-                                                <td class="py-2 px-4 border-b border-b-gray-50">
-                                                    <div class="flex items-center">
-                                                        <a href="#" class="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate">Create landing page</a>
-                                                    </div>
-                                                </td>
-                                                <td class="py-2 px-4 border-b border-b-gray-50">
-                                                    <span class="text-[13px] font-medium text-rose-500">-$235</span>
-                                                </td>
-                                                <td class="py-2 px-4 border-b border-b-gray-50">
-                                                    <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">Withdrawn</span>
                                                 </td>
                                             </tr>
                                             </tbody>
