@@ -460,10 +460,10 @@ const ExportGroupedByFilesBanamex = () => {
                 <button @click="switchBankOrder('banamex')" class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
                     <img class="rounded" src="https://www.banamex.com/assets/img/home/banamexLogo.jpg" alt="Banamex Logo">
                 </button>
-                <button class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
+                <button class="hidden items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
                     <img class="rounded" src="https://centrosantafe.com.mx/cdn/shop/files/376.png?v=9702320089011248641" alt="Santander Logo">
                 </button>
-                <button class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
+                <button class="hidden items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
                     <img class="rounded" src="https://facturaelectronica.scotiabank.com.mx/consultaFacElecWeb/static/media/Scotia.53b03a880a8729527280.png" alt="Scotia Bank Logo">
                 </button>
             </div>
