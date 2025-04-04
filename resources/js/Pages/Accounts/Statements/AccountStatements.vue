@@ -58,6 +58,7 @@ const CurrentExcelFileBanamex = ref({
 });
 /* the component state is an array of objects */
 const HasFilter = ref(false);
+const HasFilterBanamex = ref(false);
 /* get state data and export to XLSX */
 function exportFile() {
     let table = document.getElementById("excelTable");
@@ -315,6 +316,56 @@ const GroupByConcept = () => {
     console.log(CurrentExcelFile.value.activeSheet.groupedRows);
     
 }
+const GroupByConceptBanamex = () => {
+    // Saltar hasta la fila 16
+    const startRow = 17;
+    const endRow = CurrentExcelFileBanamex.value.activeSheet.rows.length - 1;
+    const rows = CurrentExcelFileBanamex.value.activeSheet.rows.slice(startRow, endRow);
+    CurrentExcelFileBanamex.value.activeSheet.rows = rows;
+    const grouped = CurrentExcelFileBanamex.value.activeSheet.rows.reduce((acc, row) => {
+        const concept = row[1];
+        if (!acc[concept]) {
+            acc[concept] = {
+                Abono: 0,
+                Cargo: 0,
+                Concepto: concept,
+            };
+        }
+        acc[concept].Abono += row[2] ? parseFloat(row[2]) : 0;
+        acc[concept].Cargo += row[3] ? parseFloat(row[3]) : 0;
+        return acc;
+    }, {});
+    CurrentExcelFileBanamex.value.activeSheet.groupedRows = grouped;
+    HasFilterBanamex.value = true;
+    console.log(CurrentExcelFileBanamex.value.activeSheet.groupedRows);
+    
+}
+// Sorting banks
+const SortBank = ref({
+    BBVA: 'order-1',
+    Banamex: 'order-2',
+    Santander: 'order-3',
+    Scotia: 'order-4',
+});
+
+const switchBankOrder = (bank) => {
+    switch(bank) {
+        case Banks.BBVA:
+            SortBank.value.BBVA = 'order-1';
+            SortBank.value.Banamex = 'order-2';
+            SortBank.value.Santander = 'order-3';
+            SortBank.value.Scotia = 'order-4';
+            break;
+        case Banks.Banamex:
+            SortBank.value.BBVA = 'order-2';
+            SortBank.value.Banamex = 'order-1';
+            SortBank.value.Santander = 'order-3';
+            SortBank.value.Scotia = 'order-4';
+            break;
+        default:
+            break;
+    }
+}
 </script>
 
 <template>
@@ -324,23 +375,27 @@ const GroupByConcept = () => {
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight md:mr-2">
                     Estado de Cuenta
                 </h2>
-                <button class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
+                <!-- Lista de bancos -->
+                <button @click="switchBankOrder('bbva')" class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
                     <img class="rounded" src="https://play-lh.googleusercontent.com/oraD6oZpIkoQ3ZAv3uOM-yggF5_8RIHB5QFcx__WccT2vr8uA9ffQmX95ExdMZuBzf8" alt="Santander Logo">
                 </button>
-                <button class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
+                <button @click="switchBankOrder('banamex')" class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
                     <img class="rounded" src="https://www.banamex.com/assets/img/home/banamexLogo.jpg" alt="Banamex Logo">
                 </button>
                 <button class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
                     <img class="rounded" src="https://centrosantafe.com.mx/cdn/shop/files/376.png?v=9702320089011248641" alt="Santander Logo">
+                </button>
+                <button class="flex items-center w-16 h-16 p-1 rounded bg-white hover:bg-sky-200 hover:border-sky-500 active:bg-sky-400 shadow-md border border-gray-200 overflow-hidden transition-colors duration-150 ease-in-out">
+                    <img class="rounded" src="https://facturaelectronica.scotiabank.com.mx/consultaFacElecWeb/static/media/Scotia.53b03a880a8729527280.png" alt="Scotia Bank Logo">
                 </button>
             </div>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="w-full flex flex-col space-y-4">
+                <div class="w-full flex flex-col space-y-4 gap-y-4">
                     <!-- BBVA SECTION -->
-                    <section class="order-1">
+                    <section :class="SortBank.BBVA">
                         <!-- Contenedor Principal -->
                         <div class="lg:flex gap-4 items-stretch">
                             <!-- Caja Grande -->
@@ -479,7 +534,7 @@ const GroupByConcept = () => {
                         </section>
                     </section>
                     <!-- BANAMEX SECTION -->
-                    <section class="order-2">
+                    <section :class="SortBank.Banamex">
                         <!-- Contenedor Principal -->
                         <div class="lg:flex gap-4 items-stretch">
                             <!-- Caja Grande -->
@@ -553,7 +608,7 @@ const GroupByConcept = () => {
                                 <div class="flex justify-between mb-0 items-start">
                                     <div class="font-medium">Movimientos</div>
                                     <div>
-                                    <NavigationButton @click.native="GroupByConcept" class="ml-24 max-w-20 w-14 flex justify-center">
+                                    <NavigationButton @click.native="GroupByConceptBanamex" class="ml-24 max-w-20 w-14 flex justify-center">
                                         <p class="font-medium text-sky-500">
                                             Agrupar
                                         </p>
@@ -561,7 +616,7 @@ const GroupByConcept = () => {
                                     </div>
                                 </div>
                                 <div class="overflow-x-auto">
-                                    <table v-if="CurrentExcelFile.activeSheet.rows.length > 0" class="w-full min-w-[460px]">
+                                    <table v-if="CurrentExcelFileBanamex.activeSheet.rows.length > 0" class="w-full min-w-[460px]">
                                         <thead>
                                             <tr>
                                                 <th class="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tl-md rounded-bl-md">Concepto</th>
@@ -570,7 +625,7 @@ const GroupByConcept = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-if="HasFilter" v-for="(row, idx) in CurrentExcelFile.activeSheet.groupedRows" :key="idx">
+                                            <tr v-if="HasFilterBanamex" v-for="(row, idx) in CurrentExcelFileBanamex.activeSheet.groupedRows" :key="idx">
                                                 <td class="py-2 px-4 border-b border-b-gray-50">
                                                     <div class="flex items-center">
                                                         <a href="#" class="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate">{{ (row.Concepto) }}</a>
@@ -583,7 +638,7 @@ const GroupByConcept = () => {
                                                     <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">- {{ Format.Currency(row.Cargo) }}</span>
                                                 </td>
                                             </tr>
-                                            <tr v-else v-for="(row, index) in CurrentExcelFile.activeSheet.rows" :key="index">
+                                            <tr v-else v-for="(row, index) in CurrentExcelFileBanamex.activeSheet.rows" :key="index">
                                                 <td class="py-2 px-4 border-b border-b-gray-50">
                                                     <div class="flex items-center">
                                                         <img src="https://placehold.co/32x32" alt="" class="w-8 h-8 rounded object-cover block">
