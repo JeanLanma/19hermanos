@@ -2,7 +2,7 @@ import Format from '@/Utils/Format.js';
 
 const AccountStatementsHeaders = ({
     XLS: {
-        BBVA: {
+        Banemex: {
             headers: ["Fecha", "Descripcion", "Depositos", "Retiros", "Saldo"],
             rows: []
         },
