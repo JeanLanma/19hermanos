@@ -33,20 +33,20 @@ const HandleExcelSheet = (ExcelSheet) => {
     // Filas donde esta la informacion
     const Rows = {
         Cargo: 6,
-        Abono: 6
+        Abono: 6,
+        Type: 5
     };
-    // Remover la primera fila (encabezados)
-    ExcelSheet.shift();
     // Preparar el aoa para calcular los totales
     const _sheet = ExcelSheet.map(row => {
         return row.map(cell => {
             return cell ? cell.toString().replace(/,/g, '') : cell;
         });
     });
+    
     _sheet.forEach((row, index) => {
         if (index > 0) {
-            Resume.CargoTotal += row[Rows.Cargo] ? parseFloat(row[Rows.Cargo]) : 0;
-            Resume.AbonoTotal += row[Rows.Abono] ? parseFloat(row[Rows.Abono]) : 0;
+            Resume.CargoTotal = row[Rows.Type] == '-' ? Resume.CargoTotal + parseFloat(row[Rows.Cargo]) : Resume.CargoTotal;
+            Resume.AbonoTotal = row[Rows.Type] == '+' ? Resume.AbonoTotal + parseFloat(row[Rows.Abono]) : Resume.AbonoTotal;
         }
     });
     

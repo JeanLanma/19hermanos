@@ -74,10 +74,28 @@ const CurrentExcelFileSantander = ref({
         }
     },
 });
+const CurrentExcelFileScotia = ref({
+    name: '',
+    activeSheet: {
+        name: '',
+        rows: [],
+        groupedRows: [],
+        data: [],
+        resume: {
+            CargoTotal: 0,
+            AbonoTotal: 0,
+            SaldoTotal: 0,
+            SaldoTotalString: '',
+            AbonoTotalString: '',
+            CargoTotalString: ''
+        }
+    },
+});
 /* the component state is an array of objects */
 const HasFilter = ref(false);
 const HasFilterBanamex = ref(false);
 const HasFilterSantander = ref(false);
+const HasFilterScotia = ref(false);
 /* get state data and export to XLSX */
 function exportFile() {
     let table = document.getElementById("excelTable");
@@ -128,6 +146,19 @@ const ResumeChartDataBanamex = ref({
                 ]
     });
 const ResumeChartDataSantander = ref({
+        labels: ['Abonos', 'Cargos', 'Saldo'],
+        datasets: [
+                    {
+                    backgroundColor: ['#22c55e', '#ea580c', '#00D8FF'],
+                    data: [
+                        0,
+                        0,
+                        100
+                    ]
+                    }
+                ]
+    });
+const ResumeChartDataScotia = ref({
         labels: ['Abonos', 'Cargos', 'Saldo'],
         datasets: [
                     {
@@ -270,7 +301,6 @@ const HandleSantanderFile = (file, sheetName, sheetData) => {
     CurrentExcelFileSantander.value.name = file.name;
     CurrentExcelFileSantander.value.activeSheet.name = sheetName;
     CurrentExcelFileSantander.value.activeSheet.rows = sheetData;
-    return console.log(CurrentExcelFileSantander.value);
     const resume = Santander.HandleExcelSheet(sheetData);
     // Merge data to Workbook
     Workbook.value.SheetNames.push({
@@ -437,7 +467,12 @@ const GroupByConceptBanamex = () => {
     
 }
 const GroupByConceptSantander = () => {
-    const grouped = CurrentExcelFile.value.activeSheet.rows.reduce((acc, row) => {
+    // Ignorar primera fila
+    const startRow = 1;
+    const endRow = CurrentExcelFileSantander.value.activeSheet.rows.length - 1;
+    const rows = CurrentExcelFileSantander.value.activeSheet.rows.slice(startRow, endRow);
+    CurrentExcelFileSantander.value.activeSheet.rows = rows;
+    const grouped = rows.reduce((acc, row) => {
         const concept = row[9];
         if (!acc[concept]) {
             acc[concept] = {
@@ -446,13 +481,13 @@ const GroupByConceptSantander = () => {
                 Concepto: concept,
             };
         }
-        acc[concept].Abono += row[4] ? parseFloat(row[6]) : 0;
-        acc[concept].Cargo += row[5] ? parseFloat(row[6]) : 0;
+        acc[concept].Abono = row[5] == '+' ? acc[concept].Abono + parseFloat(row[6]) : acc[concept].Abono;
+        acc[concept].Cargo = row[5] == '-' ? acc[concept].Cargo + parseFloat(row[6]) : acc[concept].Cargo;
         return acc;
     }, {});
+    console.log(grouped);
     CurrentExcelFileSantander.value.activeSheet.groupedRows = grouped;
     HasFilterSantander.value = true;
-    console.log(CurrentExcelFileSantander.value.activeSheet.groupedRows);
     
 }
 // Sorting banks
@@ -570,7 +605,43 @@ const ExportGroupedByFilesBanamex = () => {
     // Guardar archivo Excel
     writeFileXLSX(workbook, "Concentrado_Banamex_"+ formattedDate +".xlsx");
 }
+const ExportGroupedByFilesSantander = () => {
+    let table = document.getElementById("excelTableSantander");
+    let sheetData = [];
 
+    // Establecer cabecera de la tabla
+    let headerRow = [];
+    table.querySelectorAll("th").forEach((header) => {
+        headerRow.push(header.textContent.trim()); // Obtener texto de cada celda
+    });
+    // Recorrer filas de la tabla
+    table.querySelectorAll("tr").forEach((row) => {
+        let rowData = [];
+        row.querySelectorAll("td").forEach((cell) => {
+            rowData.push(cell.textContent.trim()); // Obtener texto de cada celda
+        });
+        sheetData.push(rowData);
+    });
+
+    // Agregar la cabecera al inicio de la tabla
+    sheetData.unshift(headerRow);
+
+
+    // Crear un nuevo libro de Excel
+    let workbook = utils.book_new();
+    let worksheet = utils.aoa_to_sheet(sheetData); // Convertir la tabla a formato Excel
+    utils.book_append_sheet(workbook, worksheet, "Concentrado");
+
+    // Fecha de hoy
+    let today = new Date();
+    let day = String(today.getDate()).padStart(2, '0');
+    let month = String(today.getMonth() + 1).padStart(2, '0'); // Enero es 0
+    let year = today.getFullYear();
+    let formattedDate = `${year}-${month}-${day}`;
+
+    // Guardar archivo Excel
+    writeFileXLSX(workbook, "Concentrado_Santander_"+ formattedDate +".xlsx");
+}
 </script>
 
 <template>
@@ -899,19 +970,19 @@ const ExportGroupedByFilesBanamex = () => {
                                     <!-- Caja pequeña 1 -->
                                     <div
                                         class="flex-1 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-lg flex flex-col items-center justify-center p-4 space-y-2 border border-gray-200 m-2">
-                                        <p class="text-white">Abonos <span v-if="CurrentExcelFileBanamex.activeSheet.data.resume?.AbonoTotalString" class="font-bold"> {{ CurrentExcelFileBanamex.activeSheet.data.resume.AbonoTotalString ?? '' }} </span></p>
+                                        <p class="text-white">Abonos <span v-if="CurrentExcelFileSantander.activeSheet.data.resume?.AbonoTotalString" class="font-bold"> {{ CurrentExcelFileSantander.activeSheet.data.resume.AbonoTotalString ?? '' }} </span></p>
                                     </div>
 
                                     <!-- Caja pequeña 2 -->
                                     <div
                                         class="flex-1 bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-lg flex flex-col items-center justify-center p-4 space-y-2 border border-gray-200 m-2">
-                                        <p class="text-white">Cargos <span v-if="CurrentExcelFileBanamex.activeSheet.data.resume?.CargoTotalString" class="font-bold"> {{ CurrentExcelFileBanamex.activeSheet.data.resume.CargoTotalString ?? '' }} </span></p>
+                                        <p class="text-white">Cargos <span v-if="CurrentExcelFileSantander.activeSheet.data.resume?.CargoTotalString" class="font-bold"> {{ CurrentExcelFileSantander.activeSheet.data.resume.CargoTotalString ?? '' }} </span></p>
                                     </div>
 
                                     <!-- Caja pequeña 3 -->
                                     <div
                                         class="flex-1 bg-gradient-to-r from-cyan-400 to-cyan-600 rounded-lg flex flex-col items-center justify-center p-4 space-y-2 border border-gray-200 m-2">
-                                        <p class="text-white">Saldo <span v-if="CurrentExcelFileBanamex.activeSheet.data.resume?.SaldoTotalString" class="font-bold"> {{ CurrentExcelFileBanamex.activeSheet.data.resume.SaldoTotalString ?? '' }} </span></p>
+                                        <p class="text-white">Saldo <span v-if="CurrentExcelFileSantander.activeSheet.data.resume?.SaldoTotalString" class="font-bold"> {{ CurrentExcelFileSantander.activeSheet.data.resume.SaldoTotalString ?? '' }} </span></p>
                                     </div>
                                 </div>
                             </div>
@@ -922,7 +993,7 @@ const ExportGroupedByFilesBanamex = () => {
                             <div class="bg-white md:w-1/2 overflow-hidden shadow-xl sm:rounded-lg px-4 py-8">
                                 <div class="flex justify-center">
                                     <div>
-                                        <Doughnut :data="ResumeChartDataBanamex" :options="options" />
+                                        <Doughnut :data="ResumeChartDataSantander" :options="options" />
                                     </div>
                                     <!-- <NavigationButton @click="exportFile" class="hidden ml-24 max-w-20 w-14 flex justify-centner border-[#45B058]">
                                         <svg width="32px" height="32px" viewBox="-4 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M5.112.006c-2.802 0-5.073 2.273-5.073 5.074v53.841c0 2.803 2.271 5.074 5.073 5.074h45.774c2.801 0 5.074-2.271 5.074-5.074v-38.605l-18.902-20.31h-31.946z" fill-rule="evenodd" clip-rule="evenodd" fill="#45B058"></path><path d="M19.429 53.938c-.216 0-.415-.09-.54-.27l-3.728-4.97-3.745 4.97c-.126.18-.324.27-.54.27-.396 0-.72-.306-.72-.72 0-.144.035-.306.144-.432l3.89-5.131-3.619-4.826c-.09-.126-.145-.27-.145-.414 0-.342.288-.72.721-.72.216 0 .432.108.576.288l3.438 4.628 3.438-4.646c.127-.18.324-.27.541-.27.378 0 .738.306.738.72 0 .144-.036.288-.127.414l-3.619 4.808 3.891 5.149c.09.126.125.27.125.414 0 .396-.324.738-.719.738zm9.989-.126h-5.455c-.595 0-1.081-.486-1.081-1.08v-10.317c0-.396.324-.72.774-.72.396 0 .721.324.721.72v10.065h5.041c.359 0 .648.288.648.648 0 .396-.289.684-.648.684zm6.982.216c-1.782 0-3.188-.594-4.213-1.495-.162-.144-.234-.342-.234-.54 0-.36.27-.756.702-.756.144 0 .306.036.433.144.828.738 1.98 1.314 3.367 1.314 2.143 0 2.826-1.152 2.826-2.071 0-3.097-7.111-1.386-7.111-5.672 0-1.98 1.764-3.331 4.123-3.331 1.548 0 2.881.468 3.853 1.278.162.144.253.342.253.54 0 .36-.307.72-.703.72-.145 0-.307-.054-.432-.162-.883-.72-1.98-1.044-3.079-1.044-1.44 0-2.467.774-2.467 1.909 0 2.701 7.112 1.152 7.112 5.636 0 1.748-1.188 3.53-4.43 3.53z" fill="#ffffff"></path><path d="M55.953 20.352v1h-12.801s-6.312-1.26-6.127-6.707c0 0 .207 5.707 6.002 5.707h12.926z" fill-rule="evenodd" clip-rule="evenodd" fill="#349C42"></path><path d="M37.049 0v14.561c0 1.656 1.104 5.791 6.104 5.791h12.801l-18.905-20.352z" opacity=".5" fill-rule="evenodd" clip-rule="evenodd" fill="#ffffff"></path></g></svg>
@@ -936,12 +1007,12 @@ const ExportGroupedByFilesBanamex = () => {
                                 <div class="flex justify-between mb-0 items-start">
                                     <div class="font-medium">Movimientos</div>
                                     <div class="flex items-center space-x-2">
-                                    <NavigationButton v-show="HasFilterSantander" @click.native="ExportGroupedByFilesBanamex" class="ml-24 max-w-20 w-14 flex justify-center">
+                                    <NavigationButton v-show="HasFilterSantander" @click.native="ExportGroupedByFilesSantander" class="ml-24 max-w-20 w-14 flex justify-center">
                                         <p class="font-medium text-sky-500">
                                             Exportar
                                         </p>
                                     </NavigationButton>
-                                    <NavigationButton @click.native="GroupByConceptBanamex" class="ml-24 max-w-20 w-14 flex justify-center">
+                                    <NavigationButton @click.native="GroupByConceptSantander" class="ml-24 max-w-20 w-14 flex justify-center">
                                         <p class="font-medium text-sky-500">
                                             Agrupar
                                         </p>
@@ -949,7 +1020,7 @@ const ExportGroupedByFilesBanamex = () => {
                                     </div>
                                 </div>
                                 <div class="overflow-x-auto">
-                                    <table v-if="CurrentExcelFileBanamex.activeSheet.rows.length > 0" class="w-full min-w-[460px]" id="excelTableBanamex">
+                                    <table v-if="CurrentExcelFileSantander.activeSheet.rows.length > 0" class="w-full min-w-[460px]" id="excelTableSantander">
                                         <thead>
                                             <tr>
                                                 <th class="text-[12px] uppercase tracking-wide font-medium text-gray-400 py-2 px-4 bg-gray-50 text-left rounded-tl-md rounded-bl-md">Concepto</th>
@@ -958,7 +1029,7 @@ const ExportGroupedByFilesBanamex = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-if="HasFilterBanamex" v-for="(row, idx) in CurrentExcelFileBanamex.activeSheet.groupedRows" :key="idx">
+                                            <tr v-if="HasFilterSantander" v-for="(row, idx) in CurrentExcelFileSantander.activeSheet.groupedRows" :key="idx">
                                                 <td class="py-2 px-4 border-b border-b-gray-50">
                                                     <div class="flex items-center">
                                                         <a href="#" class="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate">{{ (row.Concepto) }}</a>
@@ -971,7 +1042,7 @@ const ExportGroupedByFilesBanamex = () => {
                                                     <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">- {{ Format.Currency(row.Cargo) }}</span>
                                                 </td>
                                             </tr>
-                                            <tr v-else v-for="(row, index) in CurrentExcelFileBanamex.activeSheet.rows" :key="index">
+                                            <tr v-else v-for="(row, index) in CurrentExcelFileSantander.activeSheet.rows" :key="index">
                                                 <td class="py-2 px-4 border-b border-b-gray-50">
                                                     <div class="flex items-center">
                                                         <img src="https://placehold.co/32x32" alt="" class="w-8 h-8 rounded object-cover block">
@@ -979,10 +1050,10 @@ const ExportGroupedByFilesBanamex = () => {
                                                     </div>
                                                 </td>
                                                 <td class="py-2 px-4 border-b border-b-gray-50">
-                                                    <span class="text-[13px] font-medium text-emerald-500">{{ Format.Currency(row[4]) }}</span>
+                                                    <span class="text-[13px] font-medium text-emerald-500">{{ row[5] == '+' ? Format.Currency(row[6]) : '-' }}</span>
                                                 </td>
                                                 <td class="py-2 px-4 border-b border-b-gray-50">
-                                                    <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">- {{ Format.Currency(row[5]) }}</span>
+                                                    <span class="inline-block p-1 rounded bg-rose-500/10 text-rose-500 font-medium text-[12px] leading-none">- {{ row[5] == '-' ? Format.Currency(row[6]) : '-' }}</span>
                                                 </td>
                                             </tr>
                                             </tbody>
