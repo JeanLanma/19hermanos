@@ -22,6 +22,7 @@
     "dependencies": {
         "chart.js": "^4.4.8",
         "vue-chartjs": "^5.3.2",
+        "vue-sweetalert2": "^5.0.11",
         "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
     }
 }

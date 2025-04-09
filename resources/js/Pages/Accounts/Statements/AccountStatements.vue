@@ -6,6 +6,7 @@ import Santander from '@/Accounts/SANT';
 import Banamex from '@/Accounts/BMX.js';
 import BBVA from '@/Accounts/BBVA.js';
 import Banks from '@/Accounts/Bank';
+import { Toast } from '@/Utils/Alerts.js';
 
 // XLSX
 import { read, utils, writeFileXLSX } from 'xlsx';
@@ -234,6 +235,7 @@ const HandleBBVAFile = (file, sheetName, sheetData) => {
                 }
             ]
     };
+    Toast.success('Archivo BBVA procesado.');
 }
 const HandleBanamexFile = (file, sheetName, sheetData) => {
     CurrentExcelFileBanamex.value.name = file.name;
@@ -296,6 +298,7 @@ const HandleBanamexFile = (file, sheetName, sheetData) => {
                 }
             ]
     };
+    Toast.success('Archivo Banamex procesado.');
 };
 const HandleSantanderFile = (file, sheetName, sheetData) => {
     CurrentExcelFileSantander.value.name = file.name;
@@ -355,6 +358,7 @@ const HandleSantanderFile = (file, sheetName, sheetData) => {
                 }
             ]
     };
+    Toast.success('Archivo Santander procesado.');
 }
 /**
  * Handle Excel file change
